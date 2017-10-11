@@ -17,3 +17,17 @@ while 1:
     print("received data:", data)
     conn.send(data)
 conn.close()
+
+
+
+"""
+class MySocket(object):
+
+    def __init__(self, sock = None):
+        if not sock:
+            self.sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+        else:
+            self.sock = sock
+        selc.sock.bind((TCP_IP, TCP_PORT))
+        s.listen(1)
+"""
