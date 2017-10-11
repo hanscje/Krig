@@ -48,60 +48,27 @@ def lagKortstokk():
             kortstokk.append (Kort(i, j))
     return kortstokk
 
-def krig(trinekrigsbunke, hanskrigsbunke, trine, hans):
-    bunke = []
-    #krigteller = 1
-    while True:
-        #if krigteller > 2:
-        #    print("Dobbelkrig! ", krigteller)
-        trineTreKort = trine.trekkTreKort()
-        if trineTreKort:
-            trinekrigsbunke.extend(trineTreKort)
+class spill(object):
 
-        hansTreKort = hans.trekkTreKort()
-        if hansTreKort:
-            hanskrigsbunke.extend(hansTreKort)
+    def __init__(self):
+        kortstokk = lagKortstokk()
+        bunke1  = []
+        bunke2  = []
+        while kortstokk:
+            bunke1.append(kortstokk.pop(random.randrange(0, len(kortstokk))))
+            bunke2.append(kortstokk.pop(random.randrange(0, len(kortstokk))))
 
-        kampkort1 = trinekrigsbunke.pop(len(trinekrigsbunke) -1)
-        kampkort2 = hanskrigsbunke.pop(len(hanskrigsbunke) -1)
-
-        if kampkort1.verdi > kampkort2.verdi:
-            bunke.extend(trinekrigsbunke)
-            bunke.extend(hanskrigsbunke)
-            bunke.extend([kampkort1, kampkort2])
-            trine.vantKort(bunke)
-            print("Trine vant en krig mot Hans")
-            break
-        elif kampkort1.verdi < kampkort2.verdi:
-            bunke.extend(trinekrigsbunke)
-            bunke.extend(hanskrigsbunke)
-            bunke.extend([kampkort1, kampkort2])
-            hans.vantKort(bunke)
-            print("Hans vant en krig mot Trine")
-            break
-        trinekrigsbunke.append(kampkort1)
-        hanskrigsbunke.append(kampkort2)
-        #krigteller += 1
+        self.trine = Spiller(bunke1)
+        self.hans = Spiller(bunke2)
+        self.rundeteller = 0
 
 
-def spill():
-    kortstokk = lagKortstokk()
-    bunke1  = []
-    bunke2  = []
-    while kortstokk:
-        bunke1.append(kortstokk.pop(random.randrange(0, len(kortstokk))))
-        bunke2.append(kortstokk.pop(random.randrange(0, len(kortstokk))))
-
-    trine = Spiller(bunke1)
-    hans = Spiller(bunke2)
-    rundeteller = 0
-
-    while True:
-        kort1 = trine.visKort()
+    def spillRunde(self):
+        kort1 = self.trine.visKort()
         if not kort1:
             #print("Hans vant på runde: ", rundeteller)
             break
-        kort2 = hans.visKort()
+        kort2 = self.hans.visKort()
         if not kort2:
             #print("Trine vant på runde: ", rundeteller)
             break
@@ -109,16 +76,48 @@ def spill():
         #print("Antall kort hos Trine: ", trine.kortIgjen()+1, " Antall kort hos Hans: ",
         #        hans.kortIgjen()+1)
 
-        print('Runde #',rundeteller, 'Trine: ', kort1.farge, ' ', kort1.verdi,
+        print('Runde #',self.rundeteller, 'Trine: ', kort1.farge, ' ', kort1.verdi,
                 '\t\t Hans: ', kort2.farge, ' ', kort2.verdi)
 
         if kort1.verdi > kort2.verdi:
-            trine.vantKort([kort1, kort2])
+            self.trine.vantKort([kort1, kort2])
         elif kort1.verdi < kort2.verdi:
-            hans.vantKort([kort1, kort2])
+            self.hans.vantKort([kort1, kort2])
         else:
-            krig([kort1], [kort2], trine, hans)
-        rundeteller += 1
+            krig([kort1], [kort2])
+        self.rundeteller += 1
 
-for i in range (1,1000):
-    spill()
+
+    def krig(self, trinekrigsbunke, hanskrigsbunke):
+        bunke = []
+    #krigteller = 1
+        while True:
+            #if krigteller > 2:
+            #    print("Dobbelkrig! ", krigteller)
+            trineTreKort = self.trine.trekkTreKort()
+            if trineTreKort:
+                trinekrigsbunke.extend(trineTreKort)
+
+            hansTreKort = hans.trekkTreKort()
+            if hansTreKort:
+                self.hanskrigsbunke.extend(hansTreKort)
+
+            kampkort1 = trinekrigsbunke.pop(len(trinekrigsbunke) -1)
+            kampkort2 = hanskrigsbunke.pop(len(hanskrigsbunke) -1)
+
+            if kampkort1.verdi > kampkort2.verdi:
+                bunke.extend(trinekrigsbunke)
+                bunke.extend(hanskrigsbunke)
+                bunke.extend([kampkort1, kampkort2])
+                self.trine.vantKort(bunke)
+                print("Trine vant en krig mot Hans")
+                break
+            elif kampkort1.verdi < kampkort2.verdi:
+                bunke.extend(trinekrigsbunke)
+                bunke.extend(hanskrigsbunke)
+                bunke.extend([kampkort1, kampkort2])
+                self.hans.vantKort(bunke)
+                print("Hans vant en krig mot Trine")
+                break
+            trinekrigsbunke.append(kampkort1)
+            hanskrigsbunke.append(kampkort2)
