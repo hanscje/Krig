@@ -18,7 +18,7 @@ while 1:
     conn.send(data)
 conn.close()
 
-
+#Bruk pickle biblioteket for å serialisere objekter.
 
 """
 class MySocket(object):

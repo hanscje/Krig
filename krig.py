@@ -41,28 +41,19 @@ class Spiller(object):
     def kortIgjen(self):
         return len(self.hånd) + len(self.bunke)
 
+def lagKortstokk():
+    kortstokk = []
+    for i in ['Ruter', 'Kløver', 'Hjerter', 'spar']:
+        for j in range(1,14):
+            kortstokk.append (Kort(i, j))
+    return kortstokk
 
-bunke1 = []
-bunke2 = []
-
-kortstokk = []
-for i in ['Ruter', 'Kløver', 'Hjerter', 'spar']:
-    for j in range(1,14):
-        kortstokk.append (Kort(i, j))
-
-while kortstokk:
-    bunke1.append(kortstokk.pop(random.randrange(0, len(kortstokk))))
-    bunke2.append(kortstokk.pop(random.randrange(0, len(kortstokk))))
-
-trine = Spiller(bunke1)
-hans = Spiller(bunke2)
-rundeteller = 0
-
-
-def krig(trinekrigsbunke, hanskrigsbunke):
+def krig(trinekrigsbunke, hanskrigsbunke, trine, hans):
     bunke = []
-
+    #krigteller = 1
     while True:
+        #if krigteller > 2:
+        #    print("Dobbelkrig! ", krigteller)
         trineTreKort = trine.trekkTreKort()
         if trineTreKort:
             trinekrigsbunke.extend(trineTreKort)
@@ -90,28 +81,44 @@ def krig(trinekrigsbunke, hanskrigsbunke):
             break
         trinekrigsbunke.append(kampkort1)
         hanskrigsbunke.append(kampkort2)
+        #krigteller += 1
 
 
-while True:
-    kort1 = trine.visKort()
-    if not kort1:
-        print("Hans vant på runde: ", rundeteller)
-        break
-    kort2 = hans.visKort()
-    if not kort2:
-        print("Trine vant på runde: ", rundeteller)
-        break
+def spill():
+    kortstokk = lagKortstokk()
+    bunke1  = []
+    bunke2  = []
+    while kortstokk:
+        bunke1.append(kortstokk.pop(random.randrange(0, len(kortstokk))))
+        bunke2.append(kortstokk.pop(random.randrange(0, len(kortstokk))))
 
-    #print("Antall kort hos Trine: ", trine.kortIgjen()+1, " Antall kort hos Hans: ",
-    #        hans.kortIgjen()+1)
+    trine = Spiller(bunke1)
+    hans = Spiller(bunke2)
+    rundeteller = 0
 
-    print('Runde #',rundeteller, 'Trine: ', kort1.farge, ' ', kort1.verdi,
-            '\t\t Hans: ', kort2.farge, ' ', kort2.verdi)
+    while True:
+        kort1 = trine.visKort()
+        if not kort1:
+            #print("Hans vant på runde: ", rundeteller)
+            break
+        kort2 = hans.visKort()
+        if not kort2:
+            #print("Trine vant på runde: ", rundeteller)
+            break
 
-    if kort1.verdi > kort2.verdi:
-        trine.vantKort([kort1, kort2])
-    elif kort1.verdi < kort2.verdi:
-        hans.vantKort([kort1, kort2])
-    else:
-        krig([kort1], [kort2])
-    rundeteller += 1
+        #print("Antall kort hos Trine: ", trine.kortIgjen()+1, " Antall kort hos Hans: ",
+        #        hans.kortIgjen()+1)
+
+        print('Runde #',rundeteller, 'Trine: ', kort1.farge, ' ', kort1.verdi,
+                '\t\t Hans: ', kort2.farge, ' ', kort2.verdi)
+
+        if kort1.verdi > kort2.verdi:
+            trine.vantKort([kort1, kort2])
+        elif kort1.verdi < kort2.verdi:
+            hans.vantKort([kort1, kort2])
+        else:
+            krig([kort1], [kort2], trine, hans)
+        rundeteller += 1
+
+for i in range (1,1000):
+    spill()
