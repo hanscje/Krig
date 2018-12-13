@@ -1,4 +1,7 @@
 import socket
+import pickle
+import struct
+
 
 class StreamSocket(object):
 
@@ -13,36 +16,6 @@ class StreamSocket(object):
         
         self._debug = debug
         self._socket_inited = False
-        
-    def connect(self, host, port):
-        """
-        Connect the socket to the specified host and port.
-        """
-        if host == "localhost" or host == "127.0.0.1":
-            host = socket.gethostname()
-        self._sock.connect((host, port))
-        self._socket_inited = True
-        self.dprint("StreamSocket: Connected to host ", host, "on port", port)
-    
-    def bind(self, port):
-        """
-        Binds and listens to the specified port.
-        """
-        self._sock.bind((socket.gethostname(), port))
-        self._sock.listen(5)
-        self._socket_inited = True
-        self.dprint("StreamSocket: Bound and listens to ", port, "with hostname",
-            socket.gethostname())
-
-    def accept(self):
-        """
-        Waits for a new connection to accept.
-        """
-        accepted, client_address = self._sock.accept()
-        new_sock = StreamSocket(self._debug, accepted)
-        new_sock._socket_inited = True
-        self.dprint("StreamSocket: Accepted connect from ", client_address)
-        return (new_sock, client_address)
 
     def close(self):
         """
@@ -90,7 +63,7 @@ class StreamSocket(object):
             data.append(current_data)
             received_total = received_total + len(current_data)
         self.dprint("StreamSocket: Received data of length ", received_total)
-        return ''.join(str(data))
+        return b''.join(data)
 
     def dprint(self, fstr, *args):
         """
@@ -100,21 +73,92 @@ class StreamSocket(object):
             print(fstr, *args)
 
 
+class ClientSocket(StreamSocket):
+
+    def __init__(self, ip, port, debug=False, sock=None):
+        """
+        Initialize client to connect to the specified ip and port.
+        """
+        super().__init__(debug, sock)
+        self.connect(ip, port)
+    
+    def send(self, data):
+        """
+        Send the data as a string.
+        """
+        payload = pickle.dumps(data)
+        payload_len = int(len(payload))
+        self.dprint("Sending payload of size ", payload_len)
+        self.send_data(struct.pack("I", socket.htonl(payload_len)), 4)
+        self.send_data(payload, payload_len)
+
+    def connect(self, host, port):
+        """
+        Connect the socket to the specified host and port.
+        """
+        if host == "localhost" or host == "127.0.0.1":
+            host = socket.gethostname()
+        self._sock.connect((host, port))
+        self._socket_inited = True
+        self.dprint("StreamSocket: Connected to host ", host, "on port", port)
+
+
+class ServerSocket(StreamSocket):
+
+    def __init__(self, port, debug=False, sock=None):
+        """
+        Initialize server to listen to the specified port.
+        """
+        super().__init__(debug, sock)
+        if port is not None:
+            self.bind(port)
+
+    def recv(self):
+        """
+        Receive data based on the length sent first.
+        """
+        data = struct.unpack("I", self._sock.recv(4))
+        payload_len = socket.ntohl(data[0])
+        self.dprint("Receiving payload of size ", payload_len)
+        payload = pickle.loads(self.recv_data(payload_len))
+        self.dprint("Data: ", payload)
+
+    def bind(self, port):
+        """
+        Binds and listens to the specified port.
+        """
+        self._sock.bind((socket.gethostname(), port))
+        self._sock.listen(5)
+        self._socket_inited = True
+        self.dprint("StreamSocket: Bound and listens to ", port, "with hostname",
+            socket.gethostname())
+
+    def accept(self):
+        """
+        Waits for a new connection to accept.
+        """
+        accepted, client_address = self._sock.accept()
+        new_sock = ServerSocket(None, self._debug, accepted)
+        new_sock._socket_inited = True
+        self.dprint("StreamSocket: Accepted connect from ", client_address)
+        return (new_sock, client_address)
+
+        
+
 if __name__ == "__main__":
     print("Running 'network.py' standalone...")
     port = 5054
-    sockRecv = StreamSocket(True)
+    sockRecv = ServerSocket(True)
     sockRecv.bind(port)
     
     data = "Hello there, server!"
-    sockSend = StreamSocket(True)
-    sockSend.connect("localhost", port)
+    sockSend = ClientSocket("localhost", port, True)
     newSock, addr = sockRecv.accept()
 
     #try:
-    sockSend.send_data(data.encode('ascii'), len(data))
+    sockSend.send(data)
 
-    receivedData = newSock.recv_data(len(data))
+    receivedData = newSock.recv()
     print(receivedData)
     #except Exception as e:
     #    print(e)

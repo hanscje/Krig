@@ -1,7 +1,6 @@
-from network import StreamSocket
+from network import StreamSocket, ClientSocket
 
 data = "Hello there, server!"
-sockSend = StreamSocket(True)
-sockSend.connect("localhost", 5051)
-sockSend.send_data(data.encode('ascii'), len(data))
+sockSend = ClientSocket("localhost", 5051, True)
+sockSend.send(data)
 sockSend.close()

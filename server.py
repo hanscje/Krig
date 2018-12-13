@@ -1,11 +1,10 @@
-from network import StreamSocket
+from network import StreamSocket, ServerSocket
 
-sockRecv = StreamSocket(True)
-sockRecv.bind(5051)
+sockRecv = ServerSocket(5051, True)
 newSock, addr = sockRecv.accept()
 print("Accepted connection from ", addr)
 
-receivedData = newSock.recv_data(20)
+receivedData = newSock.recv()
 print(receivedData)
 
 newSock.close()
