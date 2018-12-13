@@ -6,3 +6,6 @@ Klient: make client IP=<target-ip> PORT=<target-port>
     f.eks: make client IP=127.0.0.1 PORT=4321
 Server: make server PORT=<target-port>
     f.eks: make server PORT=4321
+Spill: make spill PORT=[target-port]
+    f.eks: make spill PORT=5050
+    f.eks: make spill

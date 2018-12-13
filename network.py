@@ -31,6 +31,16 @@ class StreamSocket(object):
         self._inited = False
         self.dprint("StreamSocket: Closing socket")
 
+    def send(self, data):
+        """
+        Send the data as a string.
+        """
+        payload = pickle.dumps(data)
+        payload_len = int(len(payload))
+        self.dprint("Sending payload of size ", payload_len)
+        self.send_data(struct.pack("I", socket.htonl(payload_len)), 4)
+        self.send_data(payload, payload_len)
+
     def send_data(self, data, data_size):
         """
         Attempts to send 'data' if the socket is connected.
@@ -46,6 +56,16 @@ class StreamSocket(object):
                 raise RuntimeError("StreamSocket: Connection broken while sending!")
             sent_total = sent_total + sent
         self.dprint("StreamSocket: Sent data of length ", data_size)
+
+    def recv(self):
+        """
+        Receive data based on the length sent first.
+        """
+        data = struct.unpack("I", self._sock.recv(4))
+        payload_len = socket.ntohl(data[0])
+        self.dprint("Receiving payload of size ", payload_len)
+        payload = pickle.loads(self.recv_data(payload_len))
+        self.dprint("Data: ", payload)
 
     def recv_data(self, data_size):
         """
@@ -81,16 +101,6 @@ class ClientSocket(StreamSocket):
         """
         super().__init__(debug, sock)
         self.connect(ip, port)
-    
-    def send(self, data):
-        """
-        Send the data as a string.
-        """
-        payload = pickle.dumps(data)
-        payload_len = int(len(payload))
-        self.dprint("Sending payload of size ", payload_len)
-        self.send_data(struct.pack("I", socket.htonl(payload_len)), 4)
-        self.send_data(payload, payload_len)
 
     def connect(self, host, port):
         """
@@ -112,16 +122,6 @@ class ServerSocket(StreamSocket):
         super().__init__(debug, sock)
         if port is not None:
             self.bind(port)
-
-    def recv(self):
-        """
-        Receive data based on the length sent first.
-        """
-        data = struct.unpack("I", self._sock.recv(4))
-        payload_len = socket.ntohl(data[0])
-        self.dprint("Receiving payload of size ", payload_len)
-        payload = pickle.loads(self.recv_data(payload_len))
-        self.dprint("Data: ", payload)
 
     def bind(self, port):
         """

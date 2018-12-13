@@ -5,12 +5,18 @@ LOCALHOST = 127.0.0.1
 IP        = $(LOCALHOST)
 PORT      = 5050
 
+GAME      = krig.py
+ROUNDS    = 100
 CLIENT    = client.py
 SERVER    = server.py
 NETWORK   = network.py
 
 
-.PHONY: clean
+.PHONY: clean spill
+
+spill:
+	@echo 'Starting game...'
+	$(PY) $(GAME) $(PORT) $(ROUNDS)
 
 client: 
 	@echo 'Connecting client to $(IP) on port $(PORT)'
