@@ -14,9 +14,10 @@ class Kort(object):
 
 class Spiller(object):
 
-    def __init__(self, hånd):
+    def __init__(self, hånd, navn):
         self.hånd = hånd
         self.bunke = []
+        self.navn = navn
 
     def visKort(self):
         if not self.hånd:
@@ -45,7 +46,7 @@ class Spiller(object):
 
 def lagKortstokk():
     kortstokk = []
-    for i in ['Ruter', 'Kløver', 'Hjerter', 'spar']:
+    for i in ['Ruter', 'Kløver', 'Hjerter', 'Spar']:
         for j in range(1,14):
             kortstokk.append (Kort(i, j))
     return kortstokk
@@ -60,38 +61,46 @@ class Spill(object):
             bunke1.append(kortstokk.pop(random.randrange(0, len(kortstokk))))
             bunke2.append(kortstokk.pop(random.randrange(0, len(kortstokk))))
 
-        self.trine = Spiller(bunke1)
-        self.hans = Spiller(bunke2)
-        self.rundeteller = 0
+        self.trine = Spiller(bunke1, "Trine")
+        self.hans = Spiller(bunke2, "Hans")
+        self.rundeteller = 1
 
 
     def spillRunde(self):
+        seirendeSpiller = None
         kort1 = self.trine.visKort()
         if not kort1:
-            print("Hans vant på runde: ", self.rundeteller)
-            pass
+            seirendeSpiller = self.hans
         kort2 = self.hans.visKort()
         if not kort2:
-            print("Trine vant på runde: ", self.rundeteller)
-            pass
+            seirendeSpiller = self.trine
 
-        #print("Antall kort hos Trine: ", self.trine.kortIgjen()+1, " Antall kort hos Hans: ",
-        #        self.hans.kortIgjen()+1)
+        if seirendeSpiller:
+            print('\n\t\t\t', seirendeSpiller.navn, '(', seirendeSpiller.kortIgjen(), 
+                'kort ) vant på runde: ', self.rundeteller, '\n')
+            return True
 
-        print('Runde #',self.rundeteller, 'Trine: ', kort1.farge, ' ', kort1.verdi,
-                '\t\t Hans: ', kort2.farge, ' ', kort2.verdi)
+        krigsstreng = '       '
+        if kort1.verdi == kort2.verdi:
+            krigsstreng = '(KRIG!)'
+        print('Runde #%d\n\tTrine (%2d kort): %7s %2d   %7s   %2d %7s :(%2d kort) Hans' %
+            (self.rundeteller, self.trine.kortIgjen()+1, kort1.farge, kort1.verdi, 
+            krigsstreng, kort2.verdi, kort2.farge, self.hans.kortIgjen()+1))
 
         if kort1.verdi > kort2.verdi:
             self.trine.vantKort([kort1, kort2])
         elif kort1.verdi < kort2.verdi:
             self.hans.vantKort([kort1, kort2])
-        else:
+        else:   # kort1.verdi == kort2.verdi
             self.krig([kort1], [kort2])
         self.rundeteller += 1
+        return False
 
 
     def krig(self, trinekrigsbunke, hanskrigsbunke):
         bunke = []
+
+        print()
     #krigteller = 1
         while True:
             #if krigteller > 2:
@@ -112,14 +121,16 @@ class Spill(object):
                 bunke.extend(hanskrigsbunke)
                 bunke.extend([kampkort1, kampkort2])
                 self.trine.vantKort(bunke)
-                print("Trine vant en krig mot Hans")
+                print("\tTrine vant!      %7s %2d   <------   %2d %7s            Hans\n" %(
+                    kampkort1.farge, kampkort1.verdi, kampkort2.verdi, kampkort2.farge))
                 break
             elif kampkort1.verdi < kampkort2.verdi:
                 bunke.extend(trinekrigsbunke)
                 bunke.extend(hanskrigsbunke)
                 bunke.extend([kampkort1, kampkort2])
                 self.hans.vantKort(bunke)
-                print("Hans vant en krig mot Trine")
+                print("\tTrine            %7s %2d   ------>   %2d %7s            Hans vant!\n" %(
+                    kampkort1.farge, kampkort1.verdi, kampkort2.verdi, kampkort2.farge))
                 break
             trinekrigsbunke.append(kampkort1)
             hanskrigsbunke.append(kampkort2)
@@ -127,7 +138,7 @@ class Spill(object):
 
 if __name__ == "__main__":
     port = 5050
-    runder = 100
+    runder = 1
     if len(sys.argv) > 1:
         port = int(sys.argv[1])
     if len(sys.argv) > 2:
@@ -137,4 +148,6 @@ if __name__ == "__main__":
     spill = Spill()
     
     for i in range(runder):
-        spill.spillRunde()
+        seier = False
+        while not seier:
+            seier = spill.spillRunde()

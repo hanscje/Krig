@@ -6,7 +6,7 @@ IP        = $(LOCALHOST)
 PORT      = 5050
 
 GAME      = krig.py
-ROUNDS    = 100
+ROUNDS    = 1
 CLIENT    = client.py
 SERVER    = server.py
 NETWORK   = network.py
