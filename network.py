@@ -22,8 +22,7 @@ class StreamSocket(object):
             host = socket.gethostname()
         self._sock.connect((host, port))
         self._socket_inited = True
-        if self._debug:
-            print("StreamSocket: Connected to host ", host, "on port", port)
+        self.dprint("StreamSocket: Connected to host ", host, "on port", port)
     
     def bind(self, port):
         """
@@ -32,8 +31,7 @@ class StreamSocket(object):
         self._sock.bind((socket.gethostname(), port))
         self._sock.listen(5)
         self._socket_inited = True
-        if self._debug:
-            print("StreamSocket: Bound and listens to ", port, "with hostname",
+        self.dprint("StreamSocket: Bound and listens to ", port, "with hostname",
             socket.gethostname())
 
     def accept(self):
@@ -42,9 +40,8 @@ class StreamSocket(object):
         """
         accepted, client_address = self._sock.accept()
         new_sock = StreamSocket(self._debug, accepted)
-        if self._debug:
-            print("StreamSocket: Accepted connect from ", client_address)
         new_sock._socket_inited = True
+        self.dprint("StreamSocket: Accepted connect from ", client_address)
         return (new_sock, client_address)
 
     def close(self):
@@ -59,8 +56,7 @@ class StreamSocket(object):
             pass
         
         self._inited = False
-        if self._debug:
-            print("StreamSocket: Closing socket")
+        self.dprint("StreamSocket: Closing socket")
 
     def send_data(self, data, data_size):
         """
@@ -76,8 +72,7 @@ class StreamSocket(object):
                 self.close()
                 raise RuntimeError("StreamSocket: Connection broken while sending!")
             sent_total = sent_total + sent
-        if self._debug:
-            print("StreamSocket: Sent data of length ", data_size)
+        self.dprint("StreamSocket: Sent data of length ", data_size)
 
     def recv_data(self, data_size):
         """
@@ -94,9 +89,15 @@ class StreamSocket(object):
                 raise RuntimeError("StreamSocket: Connection broken while receiving!")
             data.append(current_data)
             received_total = received_total + len(current_data)
-        if self._debug:
-            print("StreamSocket: Received data of length ", received_total)
+        self.dprint("StreamSocket: Received data of length ", received_total)
         return ''.join(str(data))
+
+    def dprint(self, fstr, *args):
+        """
+        Prints the input if the debug flag is set.
+        """
+        if self._debug:
+            print(fstr, *args)
 
 
 if __name__ == "__main__":
